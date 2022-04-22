@@ -1,1 +1,1 @@
-[learning](https://moonpower.gihub.io/learning/)
+[learning](https://moonpower.github.io/learning)
