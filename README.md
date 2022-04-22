@@ -1,3 +1,1 @@
-페이지
-
-- [학습](https://moonpower.github.io/learning)
+- [학습 페이지](https://moonpower.github.io/learning)
