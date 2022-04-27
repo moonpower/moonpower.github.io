@@ -1,1 +1,1 @@
-- [학습 페이지](https://moonpower.github.io/learning)
+- [Devlog](https://moonpower.github.io/devlog)
