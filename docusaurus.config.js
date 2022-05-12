@@ -35,7 +35,12 @@ const config = {
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
+        googleAnalytics: {
+          trackingID: 'G-XB9QB6J16C',
+          anonymizeIP: true
+        },
       }),
+      /** @type {import('@docusaurus/preset-classic').gooA} */
     ],
   ],
 
