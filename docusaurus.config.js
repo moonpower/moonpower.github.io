@@ -36,8 +36,7 @@ const config = {
           customCss: require.resolve('./src/css/custom.css'),
         },
         googleAnalytics: {
-          trackingID: 'G-XB9QB6J16C',
-          anonymizeIP: true
+          trackingID: 'G-XB9QB6J16C'
         },
       }),
       /** @type {import('@docusaurus/preset-classic').gooA} */
