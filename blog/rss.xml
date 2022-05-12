@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    <channel>
+        <title>Youngdongbot Blog</title>
+        <link>https://moonpower.github.io/blog</link>
+        <description>Youngdongbot Blog</description>
+        <lastBuildDate>Fri, 22 Apr 2022 00:00:00 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>https://github.com/jpmonette/feed</generator>
+        <language>en</language>
+        <item>
+            <title><![CDATA[앞으로 계획]]></title>
+            <link>https://moonpower.github.io/blog/first-blog-post</link>
+            <guid>first-blog-post</guid>
+            <pubDate>Fri, 22 Apr 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[앞으로 개발하면서 접하게 되는 상황에 대해 내용을 정리할 것이다.]]></description>
+            <content:encoded><![CDATA[<p>앞으로 개발하면서 접하게 되는 상황에 대해 내용을 정리할 것이다.</p>]]></content:encoded>
+            <category>plan</category>
+        </item>
+    </channel>
+</rss>
