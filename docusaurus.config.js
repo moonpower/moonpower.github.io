@@ -117,6 +117,15 @@ const config = {
             ],
           },
           {
+            title: '커뮤니티',
+            items: [
+              {
+                label: 'GitHub Discussions',
+                href: 'https://github.com/moonpower/moonpower.github.io/discussions'
+              }
+            ]
+          },
+          {
             title: 'More',
             items: [
               {
@@ -129,8 +138,25 @@ const config = {
               },
             ],
           },
+          {
+            title: '관리',
+            items: [
+              {
+                label: 'Google Search',
+                href: 'https://search.google.com/search-console'
+              },
+              {
+                label: 'Google Analytics',
+                href: 'https://analytics.google.com/analytics/web/'
+              },
+              {
+                label: 'Naver Search',
+                href: 'https://searchadvisor.naver.com/console/board'
+              },
+            ]
+          }
         ],
-        copyright: `Copyright © Youngdongbot. Built with Docusaurus.`,
+        copyright: `${new Date().getFullYear()} Youngdongbot. Built with Docusaurus.`,
       },
       hideableSidebar: true, // 사이드바를 숨기는 기능
       autoCollapseSidebarCategories: true, // 특정 요소를 확장하면 그 외 요소들은 축소됨.
