@@ -24,13 +24,13 @@ const config = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
-          editUrl: 'https://github.com/moonpower/devlog/tree/main/',
+          editUrl: 'https://github.com/moonpower/moonpower.github.io/tree/main/',
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           editUrl:
-            'https://github.com/moonpower/devlog/tree/main/',
+            'https://github.com/moonpower/moonpower.github.io/tree/main/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -86,7 +86,7 @@ const config = {
           },
           { to: '/blog', label: '블로그', position: 'left' },
           {
-            href: 'https://github.com/moonpower/devlog',
+            href: 'https://github.com/moonpower/moonpower.github.io',
             label: 'GitHub',
             position: 'right',
           },
@@ -125,7 +125,7 @@ const config = {
               },
               {
                 label: 'GitHub',
-                href: 'https://github.com/moonpower/devlog',
+                href: 'https://github.com/moonpower/moonpower.github.io',
               },
             ],
           },
