@@ -380,7 +380,7 @@ ExtendDate.prototype.prevYear = function() {
 	}
 }
 ```
-## 캘린더 만들기
+## Calendar 만들기
 
 ### 생성자
 
@@ -865,7 +865,7 @@ Calendar.prototype.redraw = function() {
 		var target = this._rootEle;
 		parent.removeChild(target);
 		parent.appendChild(this.create());
-    }.bind(this), 300);
+    }.bind(this), 0);
 }
 
 /**
@@ -904,6 +904,9 @@ Calendar.prototype.update = function() {
     },function(v){
         value = v;
     });
+    calendar.addEventListener("value-change",function(e){
+        console.log(calendar.value);
+    });
     root.appendChild(calendar.create());
     </script>
 </body>
@@ -912,5 +915,21 @@ Calendar.prototype.update = function() {
 
 캘린더에 스타일은 완성된 예제를 참고 하세요.
 
-[완성된 예제](https://codepen.io/moonpower/pen/LYQRMKZ)
+export const CodePen = ()=>(
+    <iframe 
+        height="400" 
+        style={{width:"100%"}}
+        scrolling="no" 
+        title="ExtendCalendar(13th month)" 
+        src="https://codepen.io/moonpower/embed/LYQRMKZ?default-tab=html%2Cresult" 
+        frameborder="no" 
+        loading="lazy" 
+        allowtransparency="true" 
+        allowfullscreen="true">
+  See the Pen <a href="https://codepen.io/moonpower/pen/LYQRMKZ">
+  ExtendCalendar(13th month)</a> by Youngdongbot (<a href="https://codepen.io/moonpower">@moonpower</a>)
+  on <a href="https://codepen.io">CodePen</a>.
+</iframe>
+)
 
+<CodePen/>
