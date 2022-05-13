@@ -16,6 +16,7 @@ const config = {
   organizationName: 'moonpower',
   projectName: 'moonpower.github.io',
   themes: ['@saucelabs/theme-github-codeblock'],
+  deploymentBranch: "gh-pages", // docusaurus deploy 에 사용됨. 없으면 오류가 발생함.
   presets: [
     [
       'classic',
