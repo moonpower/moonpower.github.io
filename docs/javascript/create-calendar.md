@@ -1,11 +1,916 @@
 ---
 sidebar_position: 2
 title: 13월 캘린더 만들기
+description: 13월 캘린더 만들기
+keywords: [13월 캘린더, 13th month calendar, javascript, 자바스크립트]
 ---
 
-회계 상 월을 13월까지 사용하는 경우가 있어. 이러한 상황에 빨리 만드는 방법을 알아본다.
+회계 상 월을 13월까지 사용하는 경우가 있어. 이러한 상황에 맞추어 만드는 방법을 알아본다.
 
-먼저 캘린더를 만들기 위해 달력의 핵심인 날짜에 대한 정보를 계산하는 것인데 라이브러리가 잘 되어 있기 때문에 ![momentjs](https://momentjs.com/)를 사용하여 만들어 볼 것이다.
+먼저 캘린더를 만들기 위해 달력의 핵심인 날짜에 대한 정보를 계산하는 것인데 locale, 날짜 계산 등 지원해야 할게 많으니 잘 되어 있는 라이브러리를 쓰자. 그래서 날짜 라이브러리는 [momentjs](https://momentjs.com/)를 사용하여 만들어 볼 것이다.
+
+## ExtendDate 클래스 만들기
+
+날짜 라이브러리가 있지만 13월은 없기 때문에 13월을 계산하기 위한 Date를 만든다.
+
+`extraDates`라는 속성은 배열이며 그 요소의 인덱스는 추가되는 달이 된다. 값은 마지막 날짜가 된다.
+
+```js
+extraDates = [20,21];
+// [13월 20일, 14월 21일]
+```
+
+이렇게 정보를 가지고 만들어 보겠다.
+
+### 생성자
+
+생성자에서 date, dateFormat, extraDates를 받는다. date는 string 일 수 있고, 날짜 객체도 받을 수 있어야 한다. dateFormat은 date가 string 일때 해석 하기 위한 포맷이다. extraDates 확장할 달의 마지막 일이 설정된 배열을 이어야 한다.
+
+```js title="ExtendDate.js"
+
+var ExtendDate = function(date, dateFormat, extraDates) {
+	//momentjs 라이브러리 필요. https://momentjs.com/
+	this._mm = moment();
+	
+	if (date instanceof ExtendDate) {
+		this._mm = date._mm.clone();
+		this._extraDates = date._extraDates;
+		this.setFullYear(date.getFullYear()).setMonth(date.getMonth());
+	} else {
+		this._extraDates = extraDates || [];
+		if (dateFormat) {
+			var dateObj = ExtendDate.parseDate(date, dateFormat);
+			this.setFullYear(Number(dateObj.YYYY)).setMonth(Number(dateObj.MM) - 1).setDate(Number(dateObj.DD));
+		} else {
+			if (date instanceof moment || date instanceof Date) {
+				this._mm = moment(date);
+			}
+			this._currentMonth = this._mm.month() + 1;
+			this._currentYear = this._mm.year();
+		}
+		
+	}
+}
+```
+
+### 전역 API
+
+```js title="ExtendDate.js"
+/**
+ * YYYY,MM,DD 기준으로 작성된 문자열을 해석합니다.
+ * @param {string} date
+ * @param {string} format
+ * @return {{YYYY:string,MM:string,DD:string}}
+ */
+ExtendDate.parseDate = function(date, format) {
+	var y = format.indexOf("YYYY");
+	var m = format.indexOf("MM");
+	var d = format.indexOf("DD");
+	return {
+		YYYY: date.substring(y, y + 4),
+		MM: date.substring(m, m + 2),
+		DD: date.substring(d, d + 2)
+	};
+}
+```
+
+### 날짜 정보 설정/반환 API
+```js title="ExtendDate.js"
+/**
+ * 현재 년도의 마지막 달을 반환합니다.
+ * @return {number}
+ */
+ExtendDate.prototype.endMonth = function() {
+	return 12 + this._extraDates.length;
+}
+
+/**
+ * 현재 달의 마지막 일을 반환합니다.
+ * @return {number}
+ */
+ExtendDate.prototype.endDate = function() {
+	return this._currentMonth > 12 ? this._getExtraMonthEndDate(this._mm) : this._mm.clone().endOf("month").date();
+}
+
+/**
+ * 추가 달들을 반환합니다.
+ * @return {number[]}
+ */
+ExtendDate.prototype.getExtraMonths = function() {
+	return this._extraDates;
+}
+
+/**
+ * 마지막 날짜를 설정하여 달을 추가합니다. ex) setExtraMonths([20]) // 13월의 20일이 마지막
+ * @param {number[]} dates
+ */
+ExtendDate.prototype.setExtraMonths = function(dates) {
+	this._extraDates = dates;
+}
+
+/**
+ * 현재 달의 값을 설정합니다. 0부터 시작합니다.
+ * @param {number} num 0~11
+ * @return {ExtendDate}
+ */
+ExtendDate.prototype.setMonth = function(num) {
+	var realMonth = num + 1;
+	if (realMonth > 12 && this.endMonth() >= realMonth) {
+		this._currentMonth = realMonth;
+		this._mm.year(this._currentYear + 1);
+		this._mm.month(this._currentMonth - 13);
+	} else {
+		this._currentMonth = realMonth;
+		this._mm.year(this._currentYear);
+		this._mm.month(this._currentMonth - 1);
+	}
+	return this;
+}
+
+/**
+ * 현재 달의 값을 반환합니다. 0부터 시작합니다.
+ * @return {number} 0~11
+ */
+ExtendDate.prototype.getMonth = function() {
+	return this._currentMonth - 1;
+}
+
+/**
+ * 요일을 반환합니다.
+ * @return {number}
+ */
+ExtendDate.prototype.day = function() {
+	return this._mm.day();
+}
+
+/**
+ * 0~9999의 값을 반환합니다.
+ * @return {number}
+ */
+ExtendDate.prototype.getFullYear = function() {
+	return this._currentYear;
+}
+
+/**
+ * 0~9999의 값을 설정합니다.
+ * @param {ExtendDate} num
+ */
+ExtendDate.prototype.setFullYear = function(num) {
+	
+	if (this._currentMonth > 12) {
+		this._mm.year(num + 1);
+	} else {
+		this._mm.year(num);
+	}
+	this._currentYear = num;
+	return this;
+}
+
+/**
+ * 1~31의 값을 반환합니다.
+ * @return {number}
+ */
+ExtendDate.prototype.getDate = function() {
+	return this._mm.date();
+}
+
+/**
+ * 1~31의 값을 설정합니다.
+ * @param {number} num
+ * @return {ExtendDate}
+ */
+ExtendDate.prototype.setDate = function(num) {
+	this._mm.date(num);
+	return this;
+}
+
+/**
+ * 요일의 배열을 반환합니다.
+ * @returns {string[]}
+ */
+ExtendDate.prototype.weekdaysMin = function() {
+	return this._mm.localeData().weekdaysMin(null);
+}
+
+/**
+ * 자신을 복제합니다.
+ * @returns {ExtendDate}
+ */
+ExtendDate.prototype.clone = function() {
+	return new ExtendDate(this);
+}
+
+/**
+ * 포맷으로 값을 반환합니다.
+ * @param {string} format
+ * @returns {string}
+ */
+ExtendDate.prototype.format = function(format) {
+	if (this._currentMonth > 12) {
+		format = format.replace(/M{4}|M{3}/, "[" + this._currentMonth + "월]");
+		format = format.replace(/M{2}|M{1}/, "[" + this._currentMonth + "]");
+		format = format.replace(/Y{4}/, "[" + this._currentYear + "]");
+	}
+	return this._mm.format(format);
+}
+```
+
+### 날짜 조작 API
+
+```js title="ExtendDate.js"
+/**
+ * 달의 시작 일로 설정합니다. ex) 2022-05-22인 경우 2022-05-01로 설정됩니다.
+ * @return {ExtendDate}
+ */
+ExtendDate.prototype.startOfMonth = function() {
+	this._mm.startOf("month");
+	return this;
+}
+
+/**
+ * 년의 시작 월로 설정합니다. ex) 2022-05-22인 경우 2022-01-22로 설정됩니다.
+ * @return {ExtendDate}
+ */
+ExtendDate.prototype.startOfYear = function() {
+	this._mm.startOf("year");
+	this._mm.year(this._currentYear);
+	this._currentMonth = this._mm.month() + 1;
+	return this;
+}
+
+/**
+ * 다음 일로 이동합니다.
+ * @return {ExtendDate}
+ */
+ExtendDate.prototype.nextDate = function() {
+	var oldDate = this._mm.toDate();
+	this._mm.add(1, "days");
+	if (oldDate.getMonth() != this._mm.month()) {
+		this._currentMonth++;
+		if (this._currentMonth > this.endMonth()) {
+			this._currentMonth = 1;
+			if (this.endMonth() > 12) {
+				this._mm.year(this._mm.year());
+				this._mm.month(0);
+			}
+			this._currentYear = this._mm.year();
+		}
+	}
+	if (this._currentMonth > 12) {
+		var maxDateNum = this._getExtraMonthEndDate(this._mm);
+		if (maxDateNum && this._mm.date() > maxDateNum) {
+			var nextMonth = this._mm.month() + 1;
+			if (this._extraDates[nextMonth]) {
+				this._currentMonth++;
+				this._mm.add(1, "months").date(1);
+			} else {
+				this._mm.month(0).date(1);
+				this._currentMonth = this._mm.month() + 1;
+				this._currentYear = this._mm.year();
+			}
+		}
+	}
+	return this;
+}
+/**
+ * 달의 마지막 날짜를 반환합니다. 없는 달인 경우 null을 반환합니다.
+ * @param {moment.Moment} mom
+ */
+ExtendDate.prototype._getExtraMonthEndDate = function(mom) {
+	var maxDate = this._extraDates[mom.month()];
+	if (maxDate && maxDate == -1) {
+		maxDate = mom.clone().endOf("months").date();
+	}
+	return maxDate;
+}
+
+/**
+ * 다음 달로 이동합니다.
+ * @return {ExtendDate}
+ */
+ExtendDate.prototype.nextMonth = function() {
+	var oldDate = this._mm.toDate();
+	this._mm.add(1, "months");
+	var maxDateNum = this._getExtraMonthEndDate(this._mm);
+	if (oldDate.getFullYear() < this._mm.year() && maxDateNum) {
+		this._currentMonth = 12 + (this._mm.month() + 1);
+		this._currentYear = oldDate.getFullYear();
+		
+	} else if (oldDate.getFullYear() > this._currentYear) {
+		
+		if (maxDateNum != null) {
+			this._currentMonth = 12 + (this._mm.month() + 1);
+			if (this._mm.date() >= maxDateNum) {
+				this._mm.date(maxDateNum);
+			}
+		} else {
+			this._mm.month(0);
+			this._currentMonth = this._mm.month() + 1;
+			this._currentYear = this._mm.year();
+		}
+	} else {
+		this._currentMonth = this._mm.month() + 1;
+		this._currentYear = this._mm.year();
+	}
+	return this;
+}
+
+/**
+ * 이전 일로 이동합니다.
+ * @return {prevDate}
+ */
+ExtendDate.prototype.prevDate = function() {
+	var oldDate = this._mm.toDate();
+	this._mm.subtract(1, "days");
+	if (oldDate.getMonth() != this._mm.month()) {
+		this._currentMonth--;
+		if (this._currentMonth < 1) {
+			this._currentMonth = this.endMonth();
+			if (this.endMonth() > 12) {
+				this._mm.year(oldDate.getFullYear());
+				this._mm.month(this.endMonth() - 13);
+			}
+			this._currentYear = this._mm.year();
+		}
+	}
+	return this;
+}
+
+/**
+ * 이전 달로 이동합니다.
+ * @return {ExtendDate}
+ */
+ExtendDate.prototype.prevMonth = function() {
+	var oldDate = this._mm.toDate();
+	this._mm.subtract(1, "months");
+	this._currentMonth--;
+	if (this._currentMonth < 1) {
+		this._currentMonth = this.endMonth();
+		this._currentYear = this._mm.year();
+		if (this.endMonth() > 12) {
+			this._mm.year(oldDate.getFullYear());
+			this._mm.month(this.endMonth() - 13);
+		}
+	}
+	return this;
+	
+}
+
+/**
+ * 다음 년으로 이동합니다.
+ * @return {ExtendDate}
+ */
+ExtendDate.prototype.nextYear = function() {
+	this._mm.add(1, "years");
+	this._currentYear++;
+	if (this._currentMonth > 12) {
+		this._mm.add(1, "years");
+	}
+}
+
+/**
+ * 이전 년으로 이동합니다.
+ * @return {ExtendDate}
+ */
+ExtendDate.prototype.prevYear = function() {
+	this._mm.subtract(1, "years");
+	this._currentYear--;
+	if (this._currentMonth > 12) {
+		this._mm.add(1, "years");
+	}
+}
+```
+## 캘린더 만들기
+
+### 생성자
+
+```js title="Calendar.js"
+/**
+ * 
+ * @param {extraMonths:number[], type:"yearmonthdate"|"yearmonth"} options
+ */
+var Calendar = function(options) {
+	this._current = new ExtendDate();
+	this.setOption(options);
+	
+	/**
+	 * @type {HTMLElement}
+	 */
+	this._rootEle = null;
+	this._timeId = null;
+	/**
+	 * @type {[key:string]:Function[]}
+	 */
+	this._listener = {};
+	this._selectedNode = null;
+	
+	var _value = "";
+	var _format = "";
+	
+	/**
+	 * @type {[key:string]:{[key:string]:()=>any}}
+	 */
+	this._bindProperty = {
+		value: {
+			get: function() {
+				return _value;
+			},
+			set: function(val) {
+				_value = val;
+			}
+		},
+		format: {
+			get: function() {
+				return _format;
+			},
+			set: function(val) {
+				_format = val;
+			}
+		}
+	};
+	for (var key in this._bindProperty) {
+		(function(owner, name) {
+			Object.defineProperty(owner, name, {
+				get: function() {
+					return owner._bindProperty[name].get();
+				},
+				set: function(val) {
+					if (owner[name] == val) {
+						return;
+					}
+					owner._bindProperty[name].set(val);
+				}
+			});
+		})(this, key);
+		
+	}
+	
+}
+```
+
+### 속성
+
+```js
+/**
+ * 클래스 이름 목록
+ */
+Calendar.CLASS_NAME = {
+	root: "calendar",
+	header: "header",
+	headerText: "header-text",
+	headerPrev: "header-prev",
+	headerNext: "header-next",
+	content: "content",
+	contentHeader: "content-header",
+	contentDay: "content-day",
+	contentMonth: "content-month",
+	footer: "footer",
+	footerText: "footer-text",
+	selected: "selected",
+	text: "text"
+}
+/**
+ * 설정을 반환합니다.
+ * @return {{extraMonths: number[], type: string}}
+ */
+Calendar.prototype.getOption = function() {
+	return {
+		extraMonths: this._current.getExtraMonths()
+	};
+}
+/**
+ * 
+ * @param {{extraMonths:number[], type:string}} options
+ */
+Calendar.prototype.setOption = function(options) {
+	if (!options) {
+		return
+	}
+	if (options.extraMonths) this._current.setExtraMonths(options.extraMonths);
+}
+
+/**
+ * 속성을 바인딩합니다.
+ * @param {"value"|"format"} name
+ * @param {()=>any} getter
+ * @param {(string)=>void} setter
+ */
+Calendar.prototype.bindProperty = function(name, getter, setter) {
+	if (!this._bindProperty[name]) {
+		return;
+	}
+	this._bindProperty[name].get = getter;
+	this._bindProperty[name].set = setter;
+}
+
+```
+
+### 이벤트
+
+```js
+/**
+ * 이벤트를 추가합니다.
+ * @param {"value-change"|"before-value-change"} name
+ * @param {{type:string}} func
+ */
+Calendar.prototype.addEventListener = function(name, func) {
+	if (!this._listener[name]) {
+		this._listener[name] = [];
+	}
+	this._listener[name].push(func);
+	
+}
+
+/**
+ * 이벤트를 제거합니다.
+ * @param {string} name
+ * @param {()=>void)} func
+ */
+Calendar.prototype.removeEventListener = function(name, func) {
+	if (!this._listener[name]) {
+		return;
+	}
+	var idx = this._listener[name].indexOf(func);
+	this._listener[name].splice(idx, 1);
+}
+
+/**
+ * 이벤트를 전파합니다.
+ * @param {type:string, userData:any,defaultPrevented:boolean} event
+ */
+Calendar.prototype.dispatchEvent = function(event) {
+	if (!this._listener[event.type]) {
+		return true;
+	}
+	var me = this;
+	this._listener[event.type].forEach(function(each) {
+		if (!event.userData) {
+			event.userData = {};
+		}
+		event.userData["target"] = me;
+		each(event);
+	});
+	
+	return event["defaultPrevented"] != null? !event.defaultPrevented : true;
+}
+```
+### UI 구현
+
+```js
+/**
+ * 헤더의 텍스트를 반환합니다.
+ */
+Calendar.prototype._getHeaderText = function() {
+	return this._current.format("YYYY MMM");
+}
+
+/**
+ * 엘리먼트에 스타일을 설정합니다.
+ * @param ele HTMLElement
+ * @param style {[key:string]:string}
+ */
+Calendar.prototype._setStyle = function(ele, style) {
+	for (var key in style) {
+		ele.style[key] = style[key];
+	}
+}
+/**
+ * 엘리먼트를 생성합니다.
+ */
+Calendar.prototype.create = function() {
+	var calendar = document.createElement("div");
+	calendar.classList.add(Calendar.CLASS_NAME.root);
+
+	this._setStyle(calendar, {
+		height: "100%"
+	});
+	
+	var content = document.createElement("div");
+	this._setStyle(content, {
+		width: "100%",
+		height: "100%",
+		overflow: "hidden",
+		display: "flex",
+		"flex-direction": "column"
+	});
+	var header = this._createHeader();
+	var headerWrap = document.createElement("div");
+	
+	this._setStyle(headerWrap, {
+		"flex-grow": "0",
+		"flex-shrink": "1",
+		"flext-basis": "auto"
+	});
+	headerWrap.appendChild(header);
+	var body = this._createBody();
+	var bodyWrap = document.createElement("div");
+	
+	this._setStyle(bodyWrap, {
+		"flex-grow": "1",
+		"flex-shrink": "1",
+		"flext-basis": "auto"
+	});
+	bodyWrap.appendChild(body);
+	var footer = this._createFooter();
+	var footerWrap = document.createElement("div");
+	
+	this._setStyle(footerWrap, {
+		"flex-grow": "0",
+		"flex-shrink": "1",
+		"flext-basis": "auto"
+	});
+	footerWrap.appendChild(footer);
+	
+	content.appendChild(headerWrap);
+	content.appendChild(bodyWrap);
+	content.appendChild(footerWrap);
+	calendar.appendChild(content);
+	calendar.addEventListener("click", this._onclick.bind(this));
+	this._rootEle = calendar;
+	return calendar;
+}
+
+/**
+ * 헤더를 만듭니다.
+ */
+Calendar.prototype._createHeader = function() {
+	var header = document.createElement("div");
+	this._setStyle(header, {
+		display: "table",
+		tableLayout: "auto"
+	});
+	header.classList.add(Calendar.CLASS_NAME.header);
+	
+	var buttons = ["prev", "title", "next"];
+	buttons.forEach(function(each) {
+		switch (each) {
+			case "prev": {
+				var prev = document.createElement("div");
+				this._setStyle(prev, {
+					display: "table-cell"
+				});
+				prev.classList.add(Calendar.CLASS_NAME.headerPrev);
+				prev.innerHTML = "&nbsp;"
+				header.appendChild(prev);
+				break;
+			}
+			case "title": {
+				var title = document.createElement("div");
+				this._setStyle(title, {
+					display: "table-cell",
+					verticalAlign: "middle",
+					cursor: "default"
+				});
+				title.classList.add(Calendar.CLASS_NAME.headerText);
+				title.textContent = this._getHeaderText();
+				header.appendChild(title);
+				break;
+			}
+			case "next": {
+				var next = document.createElement("div");
+				this._setStyle(next, {
+					display: "table-cell"
+				});
+				next.innerHTML = "&nbsp;";
+				next.classList.add(Calendar.CLASS_NAME.headerNext);
+				header.appendChild(next);
+				break;
+			}
+		}
+	}.bind(this));
+	return header;
+}
+
+/**
+ * 바디를 만듭니다.
+ */
+Calendar.prototype._createBody = function() {
+	return this._createDateBody();
+}
+/**
+ * 바디의 날짜를 만듭니다.
+ */
+Calendar.prototype._createDateBody = function() {
+	var table = document.createElement("table");
+	this._setStyle(table, {
+		width: "100%",
+		"border-spacing": "0px",
+		"table-layout": "fixed"
+	});
+	table.classList.add(Calendar.CLASS_NAME.content);
+	var localeWeekdays = this._current.weekdaysMin();
+	var dayOfWeek = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+	var headerRow = document.createElement("tr");
+	localeWeekdays.forEach(function(each, idx) {
+		var th = document.createElement("th");
+		this._setStyle(th, {
+			border: "none"
+		});
+		th.textContent = each;
+		th.classList.add(Calendar.CLASS_NAME.content + "-" + dayOfWeek[idx], Calendar.CLASS_NAME.contentHeader);
+		headerRow.appendChild(th);
+	}.bind(this));
+	table.appendChild(headerRow);
+	
+	var viewDate = this._current.clone();
+	var colIdx, rowIdx;
+	viewDate.startOfMonth(); // 시작 날짜로 설정
+	
+	for (rowIdx = 1; rowIdx <= 6; rowIdx++) {
+		var bodyRow = document.createElement("tr");
+		this._setStyle(bodyRow, {
+			height: "14.35%"
+		});
+		for (colIdx = 0; colIdx < 7; colIdx++) {
+			var col = document.createElement("td");
+			this._setStyle(col, {
+				padding: "0px"
+			});
+			if (viewDate.getMonth() == this._current.getMonth() && viewDate.day() == colIdx) {
+				
+				col.setAttribute("data-date", viewDate.format("YYYY-MM-DD"));
+				col.classList.add(Calendar.CLASS_NAME.contentDay);
+				var text = document.createElement("span");
+				text.textContent = viewDate.getDate() + "";;
+				
+				text.classList.add(Calendar.CLASS_NAME.text);
+				col.appendChild(text);
+				// 선택된 값 표시
+				if (this.value == viewDate.format(this.format)) {
+					col.classList.add(Calendar.CLASS_NAME.selected);
+					this._selectedNode = col;
+				}
+				viewDate.nextDate();
+			} else {
+				col.innerHTML = "&nbsp;";
+			}
+			bodyRow.appendChild(col);
+		}
+		table.appendChild(bodyRow);
+	}
+	
+	return table;
+}
+
+/**
+ * 푸터를 만듭니다.
+ */
+Calendar.prototype._createFooter = function() {
+	var footer = document.createElement("div");
+	footer.classList.add(Calendar.CLASS_NAME.footer);
+	var text = document.createElement("div");
+	this._setStyle(text, {
+		display: "inline-block"
+	});
+	text.classList.add(Calendar.CLASS_NAME.footerText);
+	var today = new ExtendDate();
+	text.textContent = today.format("YYYY[월] MMM Do");
+	text.setAttribute("data-date", today.format("YYYY-MM-DD"));
+	footer.appendChild(text);
+	return footer;
+}
+```
+### 기능 구현
+
+```js
+
+/**
+ * 조상의 엘리먼트를 찾습니다.
+ * @param {HTMLElement} ele
+ */
+Calendar.closestAncestor = function(ele, rootEle, selector) {
+	var matchSelector = ele.matches || ele.msMatchesSelector;
+	if (!matchSelector) {
+		return null;
+	}
+	if (matchSelector.call(ele, selector)) {
+		return ele;
+	}
+	if (rootEle == ele) {
+		return ele;
+	}
+	var parent = ele;
+	while (parent != null) {
+		if (matchSelector.call(parent, selector)) {
+			return parent;
+		}
+		if (parent == rootEle) {
+			return null;
+		}
+		parent = parent.parentNode;
+	}
+	
+	return null;
+}
+Calendar.prototype._onclick = function(e) {
+	var target = e.target;
+	
+	if (Calendar.closestAncestor(target, e.currentTarget, "."+Calendar.CLASS_NAME.content) != null) {
+		target = Calendar.closestAncestor(target, e.currentTarget, "." + Calendar.CLASS_NAME.contentDay)
+		
+		if (target == null) {
+			return;
+		}
+		var event = {type:"before-value-change",userData:{}};
+		var defaultPrevented = !this.dispatchEvent(event);
+		if (defaultPrevented) {
+			return;
+		}
+		var date = target.getAttribute("data-date");
+		var value = "";
+		
+		value = this._current.clone().setDate(Number(ExtendDate.parseDate(date, "YYYY-MM-DD").DD)).format(this.format);
+		if (this._selectedNode) {
+			this._selectedNode.classList.remove(Calendar.CLASS_NAME.selected);
+		}
+		this._selectedNode = target;
+		this._selectedNode.classList.add(Calendar.CLASS_NAME.selected);
+		
+		this.value = value;
+		var event = {type:"value-change",userData:{}};
+		this.dispatchEvent(event);
+	} else if (target.classList.contains(Calendar.CLASS_NAME.headerNext)) {
+    	this._current.nextMonth();
+		this.redraw();
+	} else if (target.classList.contains(Calendar.CLASS_NAME.headerPrev)) {
+		this._current.prevMonth();
+		this.redraw();
+	} else if (target.classList.contains(Calendar.CLASS_NAME.footerText)) {
+		var date = target.getAttribute("data-date");
+		var parsedDate = ExtendDate.parseDate(date, "YYYY-MM-DD");
+
+		var isSame = parseInt(parsedDate.YYYY) == this._current.getFullYear() && parseInt(parsedDate.MM) == this._current.getMonth() + 1;
+
+		if (isSame) {
+			return;
+		}
+		this._current.setFullYear(Number(parsedDate.YYYY)).setMonth(Number(parsedDate.MM) - 1).setDate(Number(parsedDate.DD));
+		this.redraw();
+	}
+}
 
 
+/**
+ * 캘린더를 다시 그립니다.
+ */
+Calendar.prototype.redraw = function() {
+	
+    if(this._timeId){
+        clearTimeout(this._timeId);
+    }
+
+    this._timeId = setTimeout(function(){
+        this._timeId = null;
+        var parent = this._rootEle.parentNode;
+		var target = this._rootEle;
+		parent.removeChild(target);
+		parent.appendChild(this.create());
+    }.bind(this), 300);
+}
+
+/**
+ * 변경된 값을 적용합니다.
+ */
+Calendar.prototype.update = function() {
+	if (!this.value) {
+		return;
+	}
+	var date = new ExtendDate(this.value, this.format);
+	this._current.setFullYear(date.getFullYear()).setMonth(date.getMonth()).setDate(date.getDate());
+	this.redraw();
+}
+```
+
+## 사용 방법
+
+사용 방법은 다음과 같이 format, value, 추가날짜에 설정을 해주고 어떤 엘리먼트에 붙일지 작성해주면 된다.
+
+```html
+`...`
+<body>
+    <div class="root"></div>
+    <script>
+    var root = document.querySelector(".root");
+    var calendar = new Calendar({extraMonths:[20]});
+    var format = "YYYY-MM-DD";
+    var value = "";
+    calendar.bindProperty("format",function(){
+        return format;
+    }, function(v){
+        format = v;
+    });
+    calendar.bindProperty("value",function(){
+        return value;
+    },function(v){
+        value = v;
+    });
+    root.appendChild(calendar.create());
+    </script>
+</body>
+`...`
+```
+
+캘린더에 스타일은 완성된 예제를 참고 하세요.
+
+[완성된 예제](https://codepen.io/moonpower/pen/LYQRMKZ)
 

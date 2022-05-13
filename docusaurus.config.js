@@ -15,7 +15,7 @@ const config = {
   favicon: 'img/favicon.ico',
   organizationName: 'moonpower',
   projectName: 'moonpower.github.io',
-
+  themes: ['@saucelabs/theme-github-codeblock'],
   presets: [
     [
       'classic',
@@ -46,6 +46,9 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      metadata: [
+        { name: 'keywords', content: 'youngdongbot, 영동봇' }
+      ],
       navbar: {
         hideOnScroll: true, // 사용자가 아래로 스크롤 시 메뉴바를 숨길지 여부를 설정합니다.
         title: 'Youngdongbot',

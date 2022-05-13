@@ -1,7 +1,8 @@
 ---
 sidebar_position: 2
 title: Javadoc 생성하기
-keywords: [자바, javadoc, java, eclipse]
+description: Javadoc 생성하기
+keywords: [이클립스, 자바독, 자바, javadoc, java, eclipse]
 ---
 
 JAVA를 개발하면서 API에 대한 문서를 요청 받는 경우가 발생한다. 이러한 경우 Javadoc을 생성하여 전달하는데 어떻게 생성하는지 알아보자
