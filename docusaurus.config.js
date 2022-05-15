@@ -13,10 +13,11 @@ const config = {
   onBrokenLinks: 'warn', // 기본값 throw
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
-  organizationName: 'moonpower',
-  projectName: 'moonpower.github.io',
+  organizationName: 'moonpower', // https://docusaurus.io/ko/docs/api/docusaurus-config#organizationName
+  projectName: 'moonpower.github.io', // https://docusaurus.io/ko/docs/api/docusaurus-config#projectName
   themes: ['@saucelabs/theme-github-codeblock'],
-  deploymentBranch: "gh-pages", // docusaurus deploy 에 사용됨. 없으면 오류가 발생함.
+  deploymentBranch: "gh-pages", // https://docusaurus.io/ko/docs/api/docusaurus-config#deploymentBranch
+  trailingSlash: false, //https://docusaurus.io/ko/docs/api/docusaurus-config#trailingSlash
   presets: [
     [
       'classic',
