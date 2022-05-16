@@ -1,0 +1,1 @@
+{"documents":[{"id":1,"pageTitle":"앞으로 계획","sectionTitle":"앞으로 계획","sectionRoute":"/blog/first-blog-post","type":"blog"}],"index":{"version":"2.3.9","fields":["title","content"],"fieldVectors":[["title/1",[0,0.251]],["content/1",[0,0.354]]],"invertedIndex":[["",{"_index":0,"title":{"1":{}},"content":{"1":{}}}]],"pipeline":["stemmer"]}}
