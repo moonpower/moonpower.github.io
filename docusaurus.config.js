@@ -18,6 +18,7 @@ const config = {
   themes: ['@saucelabs/theme-github-codeblock'],
   deploymentBranch: "gh-pages", // https://docusaurus.io/ko/docs/api/docusaurus-config#deploymentBranch
   trailingSlash: false, //https://docusaurus.io/ko/docs/api/docusaurus-config#trailingSlash
+  plugins: [require.resolve("@cmfcmf/docusaurus-search-local")],
   presets: [
     [
       'classic',
