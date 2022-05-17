@@ -52,6 +52,12 @@ const config = {
       metadata: [
         { name: 'keywords', content: 'youngdongbot, 영동봇' }
       ],
+      docs: {
+        sidebar: {
+          hideable: true, // 사이드바를 숨기는 기능
+          autoCollapseCategories: true // 특정 요소를 확장하면 그 외 요소들은 축소됨.
+        }
+      },
       navbar: {
         hideOnScroll: true, // 사용자가 아래로 스크롤 시 메뉴바를 숨길지 여부를 설정합니다.
         title: 'Youngdongbot',
@@ -164,8 +170,6 @@ const config = {
         ],
         copyright: `${new Date().getFullYear()} Youngdongbot. Built with Docusaurus.`,
       },
-      hideableSidebar: true, // 사이드바를 숨기는 기능
-      autoCollapseSidebarCategories: true, // 특정 요소를 확장하면 그 외 요소들은 축소됨.
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
