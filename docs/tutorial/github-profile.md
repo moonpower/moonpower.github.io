@@ -1,4 +1,5 @@
 ---
+sidebar_position: 2
 title: 깃허브 프로필 꾸미기
 description: 깃허브 프로필 꾸미기
 keywords: [github profile, 깃허브 프로필 꾸미기]
