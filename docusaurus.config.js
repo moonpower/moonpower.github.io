@@ -92,7 +92,7 @@ const config = {
           },
           { to: '/blog', label: '블로그', position: 'left' },
           {
-            href: 'https://github.com/moonpower/moonpower.github.io',
+            href: 'https://github.com/moonpower',
             label: 'GitHub',
             position: 'right',
           },
@@ -140,7 +140,7 @@ const config = {
               },
               {
                 label: 'GitHub',
-                href: 'https://github.com/moonpower/moonpower.github.io',
+                href: 'https://github.com/moonpower',
               },
             ],
           },
