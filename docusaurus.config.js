@@ -62,8 +62,8 @@ const config = {
         hideOnScroll: true, // 사용자가 아래로 스크롤 시 메뉴바를 숨길지 여부를 설정합니다.
         title: 'Youngdongbot',
         logo: {
-          alt: 'Moonpower sketch',
-          src: 'img/logo.png',
+          alt: 'Youngdongbot',
+          src: 'img/youngdongbot.svg',
         },
         items: [
           {
