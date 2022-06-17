@@ -1,6 +1,8 @@
 ---
 sidebar_position: 1
 title: 시작하기
+description: 도큐사우루스 설치
+keywords: [도큐사우루스,docusaurus]
 ---
 
 도큐사우루스는 페이스북에서 만든 문서 사이트입니다. 모든 사용자들이 사용 할 수 있습니다.
