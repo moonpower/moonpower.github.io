@@ -1,0 +1,223 @@
+---
+sidebar_position: 2
+title: 배포
+---
+
+설치한 도큐사우루스를 무료 정적 웹사이트 호스팅에 배포하는 방법을 알아봅니다.
+
+## GitHub Pages로 배포하기
+
+GiuHub에서 GitHub Pages를 제공하고 있습니다. 무료사용자는 공개된 저장소에서만 사용할 수 있습니다.
+
+### `docusaurus.config.js` 파일 설정하기
+
+먼저 `docusaurus.config.js` 파일에서 필요한 몇 가지 항목을 추가해주어야 합니다.
+
+| 옵션명 |설명|
+|---|---|
+|`organizationName`|배포 저장소를 소유하고 있는 깃허브 사용자 또는 그룹 계정을 설정합니다.|
+|`projectName`|배포 저장소 이름을 설정합니다.|
+|`deploymentBranch`|배포 브래내치 이름을 설정합니다. 그룹 계정이 아니라면 깃허브 페이지 저장소 기본값은 `gh-pages` 입니다(`projectName`이 `.github.io`로 끝나지 않습니다). 아니면 구성 필드 또는 환경 변수를 사용해 명시적으로 지정해야 합니다.|
+
+예:
+
+```js title="docusaurus.config.js" {6-8}
+/** @type {import('@docusaurus/types').Config} */
+const config = {
+    // ...
+    url: 'https://moonpower.github.io',
+    baseUrl: '/',
+    organizationName: 'moonpower', 
+    projectName: 'moonpower.github.io',
+    trailingSlash: false,
+    // ...
+}
+```
+
+### 수동 배포
+
+이제 아래 명령을 사용해 사이트를 깃허브 페이지로 배포합니다. 수동배포를 하지 않아도 자동배포를 통해 배포할 수 있으니 자동배포로 넘어가도 됩니다.
+
+:::caution 주의사항
+
+deploy할때 GitHub의 패스워드를 입력이 나타날 경우 계정의 비밀번호가 아닌 Personal access tokens를 입력해야합니다.
+깃허브에서 오른쪽 상단의 자신의 프로필 클릭으로 나타나는 메뉴에서 Settings > Developer setting > Personal access tokens 페이지에서 `Generate new token`버튼을 눌러 생성한 토큰을 사용합니다.
+
+:::
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs>
+<TabItem value="bash" label="Bash" default>
+
+```bash
+GIT_USER=<GITHUB_USERNAME> yarn deploy
+```
+
+</TabItem>
+<TabItem value="windows" label="Windows">
+
+```
+cmd /C "set "GIT_USER=<GITHUB_USERNAME>" && yarn deploy"
+```
+
+</TabItem>
+<TabItem value="powershell" label="PowerShell">
+
+```
+cmd /C 'set "GIT_USER=<GITHUB_USERNAME>" && yarn deploy'
+```
+
+</TabItem>
+</Tabs>
+
+### 자동 배포
+
+깃허브 액션(GitHub Actions)을 사용해 자동으로 배포합니다. [깃허브 액션](https://help.github.com/en/actions)은 저장소에서 소프트웨어 배포를 자동으로 원하는 실행할 수 있도록 지원합니다.
+
+프로젝트에 해당 경로에 파일을 추가합니다. 그리고 `yarn.lock`파일이 필요하므로 `yarn install`을 실행한 적이 없다면 한번 실행하여 파일을 생성합니다.
+
+액션을 통해 다음과 같은 동작을 합니다.
+
+1. `main`에 대한 새로운 풀 리퀘스트가 올라오면 실제 배포는 진행하지 않고 빌드만 성공하게 합니다. 작업 이름은 `test-deploy`라고 붙입니다.
+1. 풀 리퀘스트가 `main` 브랜치에 병합되거나 누군가 직접 `main` 브랜치에 푸시하면 빌드가 되면서 `gh-pages` 브랜치에 배포됩니다. 
+
+<details>
+  <summary>GitHub action files</summary>
+
+두 가지 워크플로 파일을 추가합니다.
+
+:::danger 설정에 대한 파라미터 조정
+
+이 파일은 yarn에서 사용하고 있다고 가정합니다. origin 브랜치가 master인 경우 수정하시기 `branches`의 이름을 수정해야 합니다.
+
+:::
+
+```yml title=".github/workflows/deploy.yml"
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    # 트리거, 경로 등을 추가로 정의하려면 gh action 문서를 참고하세요.
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
+
+jobs:
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Build website
+        run: yarn build
+
+      # 깃허브 페이지에 배포하기 위한 일반적인 액션
+      # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # `gh-pages` 브랜치에 게시할 산출물 빌드
+          publish_dir: ./build
+          # 다음 라인은 공식적으로 커밋 권한을 할당합니다.
+          # `gh-pages` 브랜치에 배포하기 위한 GH-Actions 봇
+          # https://github.com/actions/checkout/issues/13#issuecomment-724415212
+          # 두 개 필드를 설정하지 않은 경우 GH-Actions 봇이 기본 설정됩니다.
+          # 자신의 자격증명으로 교체할 수 있습니다.
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+```
+
+```yml title=".github/workflows/test-deploy.yml"
+name: Test deployment
+
+on:
+  pull_request:
+    branches:
+      - main
+    # Review gh actions docs if you want to further define triggers, paths, etc
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
+
+jobs:
+  test-deploy:
+    name: Test deployment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Test build website
+        run: yarn build
+```
+
+파일 추가된 후 프로젝트 구조
+```text {2-5}
+helloworld.github.io
+├── .github
+│   └── workflows
+│       ├── deploy.yml
+│       └── test-deploy.yml
+├── blog
+│   ├── 2019-05-28-hola.md
+│   ├── 2019-05-29-hello-world.md
+│   └── 2020-05-30-welcome.md
+├── docs
+│   ├── doc1.md
+│   ├── doc2.md
+│   ├── doc3.md
+│   └── mdx.md
+├── src
+│   ├── css
+│   │   └── custom.css
+│   └── pages
+│       ├── styles.module.css
+│       └── index.js
+├── static
+│   └── img
+├── docusaurus.config.js
+├── package.json
+├── README.md
+├── sidebars.js
+└── yarn.lock
+```
+</details>
+
+### 참고
+
+https://docusaurus.io/ko/docs/deployment#deploying-to-github-pages
+
+## Vercel을 사용해 배포하기
+
+GitHub Page의 단점은 무료 사용자가 저장소를 private로 설정하면 동작하지 않습니다. 
+그러나 Vercel의 경우 GiHub의 저장소를 private로 설정해도 자동으로 배포해주기 때문에 소스를 공개하지 않고 정적 웹 사이트를 만들 수 있습니다.
+
+[Vercel](https://vercel.com/)에서 계정을 가입한 후 대시보드에서 `New Project`를 클릭합니다.
+
+**Import Git Repository**에서 자신의 저장소를 **Import** 클릭합니다. 저장소가 없는 경우 
+`Adjust GitHub App Permissions`를 클릭해서 나타나는 창을 통해 깃허브 로그인 후 해당 프로젝트를 선택해서 접근 권한을 설정합니다.
+
+다시 Vercel에서 새 프로젝트 생성 페이지를 갱신해보면 나타나고 **Import**를 클릭해서 진행합니다.
+
+**Import**를 누르면 프로젝트 설정 페이지가 나오는데 Project Name과 동일하게 domain(`{id}.vercel.app`)이 
+같이 생성되기 때문에 염두하고 작성하시면 될 것 같습니다. Framework Preset에서 `Docusarus 2`를 설정한 후에 Deploy 합니다.
+
+프로젝트 생성 후에 Project Name, Domain을 수정 할 수 있습니다.
+
+Deploy를 클릭하면 Deploy를 시작하고 ready 표시가 뜨면 자신만의 웹 사이트가 생깁니다!
+
+
+
